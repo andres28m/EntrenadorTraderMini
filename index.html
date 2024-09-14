@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Trading Tool</title>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .row {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+        }
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            background-color: #2e2e2e;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #ff5722;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ff7043;
+        }
+        #chart {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+        #buy-button {
+            background-color: #4caf50; /* Verde para Buy */
+        }
+        #sell-button {
+            background-color: #f44336; /* Rojo para Sell */
+        }
+        #buy-button:hover {
+            background-color: #45a049;
+        }
+        #sell-button:hover {
+            background-color: #e53935;
+        }
+        #entry-price.buy {
+            color: #4caf50; /* Verde para buy */
+        }
+        #entry-price.sell {
+            color: #f44336; /* Rojo para sell */
+        }
+        #current-price.up {
+            color: #4caf50; /* Verde si el precio sube */
+        }
+        #current-price.down {
+            color: #f44336; /* Rojo si el precio baja */
+        }
+        #current-price.up-buy {
+            color: #4caf50; /* verde si el precio sube para sell */
+        }
+        #current-price.down-buy {
+            color: #f44336; /* Rojo si el precio baja para sell */
+        }
+        #current-price.up-sell {
+            color: #4caf50; /* Verde si el precio sube para sell */
+        }
+        #current-price.down-sell {
+            color: #f44336; /* Rojo si el precio baja para sell */
+        }
+        #alert-section {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #2e2e2e;
+            border-radius: 5px;
+        }
+        #alert-section h2 {
+            margin: 0 0 15px 0;
+        }
+        .alert-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .alert-controls > div {
+            flex: 1;
+            min-width: 200px;
+        }
+        .alert-controls input {
+            width: calc(100% - 10px);
+            margin-bottom: 10px;
+        }
+        .alert-controls button {
+            width: 100%;
+        }
+        .profit-field {
+            color: #4caf50; /* Verde para ganancias */
+        }
+        .loss-field {
+            color: #f44336; /* Rojo para pérdidas */
+        }
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .alert-controls {
+                flex-direction: column;
+            }
+            .alert-controls input,
+            .alert-controls button {
+                width: 100%;
+            }
+        }
+    </style>
+    <script src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Crypto Trading Tool</h1>
+
+        <!-- Selector de Criptomoneda -->
+        <label for="crypto-select">Selecciona una criptomoneda:</label>
+        <select id="crypto-select">
+            <option value="BTCUSDT">Bitcoin (BTC)</option>
+            <option value="ETHUSDT">Ethereum (ETH)</option>
+            <option value="BNBUSDT">Binance Coin (BNB)</option>
+            <option value="MKRUSDT">MKR (MKR)</option>
+            <option value="TONUSDT">TONCOIN (TON)</option>
+            <option value="AAVEUSDT">AAVE (AAVE)</option>
+            <option value="TRXUSDT">TRON (TRX)</option>
+            <option value="FTMUSDT">FANTON (FTM)</option>
+            <option value="LTCUSDT">LITECOIN (LTC)</option>
+            <option value="DOGEUSDT">DOGE Coin (DOGE)</option>
+            <option value="SOLUSDT">SOLANA (SOL)</option>
+            <option value="SHIBUSDT">SHIBA COIN (SHIB)</option>
+            <option value="ADAUSDT">ADA (ADA)</option>
+            <option value="SUPERUSDT">SUPER Coin (SUPER)</option>
+            <option value="XRPUSDT">XRP (XRP)</option>
+            <option value="DARUSDT">DAR Coin (DAR)</option>
+            <option value="PEPEUSDT">PEPE Coin (PEPE)</option>
+            <option value="DOGSUSDT">DOGS Coin (DOGS)</option>
+        </select>
+
+        <!-- Precio de Entrada y Cantidad a Invertir -->
+        <div class="row">
+            <div>
+                <label for="entry-price">Precio de Entrada:</label>
+                <input type="text" id="entry-price" placeholder="0.00" readonly>
+            </div>
+            <div>
+                <label for="investment">Cantidad a Invertir:</label>
+                <input type="number" id="investment" placeholder="Cantidad a invertir">
+            </div>
+        </div>
+
+        <!-- Ganancias y pérdidas -->
+        <div class="row">
+            <div>
+                <label for="profit">Ganancias estimadas (USDT y %):</label>
+                <input type="text" id="profit" class="profit-field" placeholder="0.00" readonly>
+            </div>
+            <div>
+                <label for="loss">Pérdidas estimadas (USDT y %):</label>
+                <input type="text" id="loss" class="loss-field" placeholder="0.00" readonly>
+            </div>
+        </div>
+
+        <!-- Precio de la moneda -->
+        <label for="current-price">Precio actual de la moneda:</label>
+        <input type="text" id="current-price" placeholder="Precio actual..." readonly>
+
+        <!-- Precio objetivo y stop loss -->
+        <div class="row">
+            <div>
+                <label for="target-price">Precio objetivo:</label>
+                <input type="number" id="target-price" placeholder="Ej: 60000">
+            </div>
+            <div>
+                <label for="stop-loss">Stop Loss:</label>
+                <input type="number" id="stop-loss" placeholder="Ej: 45000">
+            </div>
+        </div>
+
+        <!-- Selector de apalancamiento -->
+        <label for="leverage">Apalancamiento:</label>
+        <select id="leverage">
+            <option value="1">1x</option>
+            <option value="2">2x</option>
+            <option value="5">5x</option>
+            <option value="10">10x</option>
+            <option value="20">20x</option>
+            <option value="30">30x</option>
+            <option value="50">50x</option>
+            <option value="75">75x</option>
+            <option value="100">100x</option>
+        </select>
+
+        <!-- Botones Buy, Sell y Cerrar Operación -->
+        <div class="row">
+            <button id="buy-button">Buy</button>
+            <button id="sell-button">Sell</button>
+            <button id="close-trade">Cerrar Operación</button>
+        </div>
+
+        <!-- Botón Comenzar Operación -->
+        <div class="row">
+            <button id="start-trade">Comenzar Operación</button>
+        </div>
+
+        <!-- Gráfico de TradingView -->
+        <div id="chart"></div>
+
+        <!-- Sección de Alerta -->
+        <div id="alert-section">
+            <h2>Alertas</h2>
+            <!-- Selector de criptomoneda para alertas -->
+            <label for="alert-crypto-select">Selecciona una criptomoneda:</label>
+            <select id="alert-crypto-select">
+                <option value="BTCUSDT">Bitcoin (BTC)</option>
+                <option value="ETHUSDT">Ethereum (ETH)</option>
+                <option value="BNBUSDT">Binance Coin (BNB)</option>
+            </select>
+
+            <div class="alert-controls">
+                <div>
+                    <label for="alert-current-price">Precio actual:</label>
+                    <input type="text" id="alert-current-price" placeholder="Precio actual..." readonly>
+                </div>
+                <div>
+                    <label for="alert-max-price">Precio máximo:</label>
+                    <input type="number" id="alert-max-price" placeholder="Ej: 60000">
+                </div>
+                <div>
+                    <label for="alert-min-price">Precio mínimo:</label>
+                    <input type="number" id="alert-min-price" placeholder="Ej: 45000">
+                </div>
+            </div>
+
+            <div class="row">
+                <button id="start-alert">Iniciar Alarma</button>
+                <button id="stop-alert">Desactivar Alarma</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elementos del DOM
+        const cryptoSelect = document.getElementById('crypto-select');
+        const priceField = document.getElementById('current-price');
+        const entryPriceField = document.getElementById('entry-price');
+        const profitField = document.getElementById('profit');
+        const lossField = document.getElementById('loss');
+        const targetPriceField = document.getElementById('target-price');
+        const stopLossField = document.getElementById('stop-loss');
+        const leverageField = document.getElementById('leverage');
+        const investmentField = document.getElementById('investment');
+        const alertCryptoSelect = document.getElementById('alert-crypto-select');
+        const alertCurrentPriceField = document.getElementById('alert-current-price');
+        const alertMaxPriceField = document.getElementById('alert-max-price');
+        const alertMinPriceField = document.getElementById('alert-min-price');
+        const startAlertButton = document.getElementById('start-alert');
+        const stopAlertButton = document.getElementById('stop-alert');
+        const buyButton = document.getElementById('buy-button');
+        const sellButton = document.getElementById('sell-button');
+        const closeTradeButton = document.getElementById('close-trade');
+        const startTradeButton = document.getElementById('start-trade');
+
+        let ws; // WebSocket de Binance
+        let entryPrice = 0; // Precio de entrada en la operación
+        let operationType = ''; // 'buy' o 'sell'
+
+        // Estado de las alertas
+        let alertEnabled = false;
+        let alertMaxPrice = 0;
+        let alertMinPrice = 0;
+
+        // Función para abrir WebSocket de Binance
+        function openWebSocket(symbol) {
+            if (ws) {
+                ws.close(); // Cierra cualquier WebSocket existente
+            }
+
+            ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@trade`);
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                const price = parseFloat(data.p).toFixed(2);
+                priceField.value = price;
+                alertCurrentPriceField.value = price;
+                updateAlertCurrentPrice(price);
+                calculateProfitLoss(price);
+            };
+        }
+
+        // Función para actualizar el precio actual en la sección de alertas
+        function updateAlertCurrentPrice(price) {
+            if (alertEnabled) {
+                if (price >= alertMaxPrice) {
+                    alert(`Precio alcanzó el máximo: ${price}`);
+                    // Reiniciar alarma después de mostrar la alerta
+                    alertEnabled = false; // Desactivar la alarma
+                } else if (price <= alertMinPrice) {
+                    alert(`Precio alcanzó el mínimo: ${price}`);
+                    // Reiniciar alarma después de mostrar la alerta
+                    alertEnabled = false; // Desactivar la alarma
+                }
+            }
+        }
+
+        // Función para calcular ganancias y pérdidas
+        function calculateProfitLoss(currentPrice) {
+            const targetPrice = parseFloat(targetPriceField.value);
+            const stopLoss = parseFloat(stopLossField.value);
+            const leverage = parseFloat(leverageField.value);
+            const investment = parseFloat(investmentField.value);
+
+            if (investment && entryPrice) {
+                let profitUSDT = 0;
+                let lossUSDT = 0;
+                let profitPercentage = 0;
+                let lossPercentage = 0;
+
+                if (operationType === 'buy') {
+                    // Ganancia en Buy: cuando el precio sube
+                    profitUSDT = ((currentPrice - entryPrice) * leverage * (investment / entryPrice)).toFixed(2);
+                    profitPercentage = (((currentPrice - entryPrice) / entryPrice) * 100).toFixed(2);
+                    // Pérdida en Buy: cuando el precio baja
+                    lossUSDT = ((entryPrice - currentPrice) * leverage * (investment / entryPrice)).toFixed(2);
+                    lossPercentage = (((entryPrice - currentPrice) / entryPrice) * 100).toFixed(2);
+                } else if (operationType === 'sell') {
+                    // Ganancia en Sell: cuando el precio baja
+                    profitUSDT = ((entryPrice - currentPrice) * leverage * (investment / entryPrice)).toFixed(2);
+                    profitPercentage = (((entryPrice - currentPrice) / entryPrice) * 100).toFixed(2);
+                    // Pérdida en Sell: cuando el precio sube
+                    lossUSDT = ((currentPrice - entryPrice) * leverage * (investment / entryPrice)).toFixed(2);
+                    lossPercentage = (((currentPrice - entryPrice) / entryPrice) * 100).toFixed(2);
+                }
+
+                // Mostrar ganancia y porcentaje en el mismo campo
+                profitField.value = profitUSDT > 0 ? `${profitUSDT} USDT (${profitPercentage}%)` : '0.00 USDT (0.00%)';
+                lossField.value = lossUSDT > 0 ? `${lossUSDT} USDT (${lossPercentage}%)` : '0.00 USDT (0.00%)';
+
+                // Actualizar color del precio actual basado en la operación y la dirección del precio
+                if (operationType === 'buy') {
+                    if (currentPrice > entryPrice) {
+                        priceField.classList.add('up');
+                        priceField.classList.remove('down');
+                    } else {
+                        priceField.classList.add('down');
+                        priceField.classList.remove('up');
+                    }
+                } else if (operationType === 'sell') {
+                    if (currentPrice < entryPrice) {
+                        priceField.classList.add('up-sell');
+                        priceField.classList.remove('down-sell');
+                    } else {
+                        priceField.classList.add('down-sell');
+                        priceField.classList.remove('up-sell');
+                    }
+                }
+            }
+        }
+
+        // Función para inicializar TradingView
+        function initTradingView(symbol) {
+            document.getElementById('chart').innerHTML = ''; // Limpia el contenedor del gráfico
+
+            new TradingView.widget({
+                "autosize": true,
+                "symbol": `BINANCE:${symbol}`,
+                "interval": "15",
+                "timezone": "Etc/UTC",
+                "theme": "dark",
+                "style": "1",
+                "locale": "es",
+                "toolbar_bg": "#f1f3f6",
+                "enable_publishing": false,
+                "container_id": "chart"
+            });
+        }
+
+        // Evento de cambio en el selector de criptomoneda
+        cryptoSelect.addEventListener('change', function() {
+            const selectedCrypto = cryptoSelect.value;
+            openWebSocket(selectedCrypto); // Abre WebSocket para la nueva criptomoneda
+            initTradingView(selectedCrypto); // Actualiza el gráfico
+        });
+
+        alertCryptoSelect.addEventListener('change', function() {
+            const selectedCrypto = alertCryptoSelect.value;
+            openWebSocket(selectedCrypto); // Actualiza la sección de alertas con el precio de la nueva criptomoneda
+            initTradingView(selectedCrypto); // Actualiza el gráfico
+        });
+
+        // Evento del botón "Iniciar Alarma"
+        startAlertButton.addEventListener('click', function() {
+            alertMaxPrice = parseFloat(alertMaxPriceField.value);
+            alertMinPrice = parseFloat(alertMinPriceField.value);
+            alertEnabled = true;
+            alert('Alarma iniciada');
+        });
+
+        // Evento del botón "Desactivar Alarma"
+        stopAlertButton.addEventListener('click', function() {
+            alertEnabled = false;
+            alert('Alarma desactivada');
+        });
+
+        // Evento del botón "Buy"
+        buyButton.addEventListener('click', function() {
+            operationType = 'buy';
+            entryPrice = parseFloat(priceField.value);
+            entryPriceField.value = entryPrice.toFixed(2);
+            entryPriceField.classList.add('buy');
+            entryPriceField.classList.remove('sell');
+        });
+
+        // Evento del botón "Sell"
+        sellButton.addEventListener('click', function() {
+            operationType = 'sell';
+            entryPrice = parseFloat(priceField.value);
+            entryPriceField.value = entryPrice.toFixed(2);
+            entryPriceField.classList.add('sell');
+            entryPriceField.classList.remove('buy');
+        });
+
+        // Evento del botón "Cerrar Operación"
+        closeTradeButton.addEventListener('click', function() {
+            entryPrice = 0;
+            operationType = '';
+            entryPriceField.value = '';
+            entryPriceField.classList.remove('buy', 'sell');
+        });
+
+        // Evento del botón "Comenzar Operación"
+        startTradeButton.addEventListener('click', function() {
+            const selectedCrypto = cryptoSelect.value;
+            openWebSocket(selectedCrypto); // Abre WebSocket para la criptomoneda seleccionada
+            initTradingView(selectedCrypto); // Inicializa el gráfico
+        });
+
+        // Inicialización
+        const initialCrypto = cryptoSelect.value;
+        openWebSocket(initialCrypto);
+        initTradingView(initialCrypto);
+    </script>
+</body>
+</html>
