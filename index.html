@@ -15,17 +15,39 @@
         .container {
             max-width: 1200px;
             margin: 20px auto;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
-        .row {
-            display: flex;
-            gap: 20px;
-            justify-content: space-between;
+        .row, .duo {
+            display: inline-block;
+        width: 100%; /* Espacio entre los elementos */
         }
-        select, input, button {
+
+        .row div, .duo div{
+            display: inline-block;
+        width: 45%; /* Ajusta este valor según el ancho deseado */
+        vertical-align: top;
+        margin-right: 12px;
+            
+        }
+    
+
+        label, .duo{
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input, .duo {
+            padding: 5px;
+            width: 100%;/* Ajusta el ancho según necesites */
+            background-color: #2e2e2e;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 5px;
+        }
+        select {
             width: 100%;
             padding: 10px;
             background-color: #2e2e2e;
@@ -36,13 +58,27 @@
         button {
             background-color: #ff5722;
             cursor: pointer;
+            border: 1px solid #555;
+            border-radius: 5px;
+            width: 100%;
+            padding: 10px;
         }
         button:hover {
             background-color: #ff7043;
         }
+        .button-row, .duo-row {
+            display: flex;
+            gap: 10px; /* Espacio entre los botones */
+            margin-top: 10px; /* Ajusta según lo necesites */
+         }
+
+         .button-row button, .duo-row button {
+            flex: 1; /* Ajusta la proporción de los botones, opcional */
+         }
+
         #chart {
             width: 100%;
-            height: 400px;
+            height: 260px;
             margin-top: 20px;
         }
         #buy-button {
@@ -131,7 +167,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Entrenador Trader Mini</h1>
+    
 
         <!-- Selector de Criptomoneda -->
         <label for="crypto-select">Selecciona una criptomoneda:</label>
@@ -156,6 +192,15 @@
             <option value="DOGSUSDT">DOGS Coin (DOGS)</option>
         </select>
 
+        <!-- Precio de la moneda -->
+        <div class="valp"">
+        <label class="live"for="current-price">Precio actual de la moneda:</label>
+        <input type="text" id="current-price" placeholder="Precio actual..." readonly>
+        </div>
+        
+        <!-- Gráfico de TradingView -->
+        <div id="chart"></div>
+        
         <!-- Precio de Entrada y Cantidad a Invertir -->
         <div class="row">
             <div>
@@ -171,19 +216,17 @@
         <!-- Ganancias y pérdidas -->
         <div class="row">
             <div>
-                <label for="profit">Ganancias estimadas (USDT y %):</label>
+                <label for="profit">Ganancias (USDT y %):</label>
                 <input type="text" id="profit" class="profit-field" placeholder="0.00" readonly>
             </div>
             <div>
-                <label for="loss">Pérdidas estimadas (USDT y %):</label>
+                <label for="loss">Pérdidas (USDT y %):</label>
                 <input type="text" id="loss" class="loss-field" placeholder="0.00" readonly>
             </div>
         </div>
 
-        <!-- Precio de la moneda -->
-        <label for="current-price">Precio actual de la moneda:</label>
-        <input type="text" id="current-price" placeholder="Precio actual..." readonly>
-
+        
+        
         <!-- Precio objetivo y stop loss -->
         <div class="row">
             <div>
@@ -196,34 +239,47 @@
             </div>
         </div>
 
+        <!-- Botones Buy, Sell y Cerrar Operación -->
+        <div class="button-row">
+            <button id="buy-button">Buy</button>
+        
+            <button id="sell-button">Sell</button>
+            
+        </div>
+    
+        <button id="close-trade">Cerrar Operación</button>
+
+        
         <!-- Selector de apalancamiento -->
         <label for="leverage">Apalancamiento:</label>
         <select id="leverage">
             <option value="1">1x</option>
             <option value="2">2x</option>
+            <option value="3">3x</option>
             <option value="5">5x</option>
             <option value="10">10x</option>
+            <option value="15">15x</option>
             <option value="20">20x</option>
+            <option value="25">25x</option>
             <option value="30">30x</option>
+            <option value="35">35x</option>
+            <option value="40">40x</option>
+            <option value="45">45x</option>
             <option value="50">50x</option>
+            <option value="55">55x</option>
+            <option value="60">60x</option>
+            <option value="65">65x</option>
+            <option value="70">70x</option>
             <option value="75">75x</option>
+            <option value="80">80x</option>
+            <option value="85">85x</option>
+            <option value="90">90x</option>
+            <option value="95">95x</option>
             <option value="100">100x</option>
         </select>
 
-        <!-- Botones Buy, Sell y Cerrar Operación -->
-        <div class="row">
-            <button id="buy-button">Buy</button>
-            <button id="sell-button">Sell</button>
-            <button id="close-trade">Cerrar Operación</button>
-        </div>
-
-        <!-- Botón Comenzar Operación -->
-        <div class="row">
-            <button id="start-trade">Comenzar Operación</button>
-        </div>
-
-        <!-- Gráfico de TradingView -->
-        <div id="chart"></div>
+        
+        
 
         <!-- Sección de Alerta -->
         <div id="alert-section">
@@ -266,8 +322,9 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="duo-row">
                 <button id="start-alert">Iniciar Alarma</button>
+     
                 <button id="stop-alert">Desactivar Alarma</button>
             </div>
         </div>
@@ -313,7 +370,7 @@
             ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@trade`);
             ws.onmessage = function(event) {
                 const data = JSON.parse(event.data);
-                const price = parseFloat(data.p).toFixed(2);
+                const price = parseFloat(data.p).toFixed(4);
                 priceField.value = price;
                 alertCurrentPriceField.value = price;
                 updateAlertCurrentPrice(price);
@@ -351,17 +408,17 @@
 
                 if (operationType === 'buy') {
                     // Ganancia en Buy: cuando el precio sube
-                    profitUSDT = ((currentPrice - entryPrice) * leverage * (investment / entryPrice)).toFixed(2);
+                    profitUSDT = ((currentPrice - entryPrice) * leverage * (investment / entryPrice)).toFixed(4);
                     profitPercentage = (((currentPrice - entryPrice) / entryPrice) * 100).toFixed(2);
                     // Pérdida en Buy: cuando el precio baja
-                    lossUSDT = ((entryPrice - currentPrice) * leverage * (investment / entryPrice)).toFixed(2);
+                    lossUSDT = ((entryPrice - currentPrice) * leverage * (investment / entryPrice)).toFixed(4);
                     lossPercentage = (((entryPrice - currentPrice) / entryPrice) * 100).toFixed(2);
                 } else if (operationType === 'sell') {
                     // Ganancia en Sell: cuando el precio baja
-                    profitUSDT = ((entryPrice - currentPrice) * leverage * (investment / entryPrice)).toFixed(2);
+                    profitUSDT = ((entryPrice - currentPrice) * leverage * (investment / entryPrice)).toFixed(4);
                     profitPercentage = (((entryPrice - currentPrice) / entryPrice) * 100).toFixed(2);
                     // Pérdida en Sell: cuando el precio sube
-                    lossUSDT = ((currentPrice - entryPrice) * leverage * (investment / entryPrice)).toFixed(2);
+                    lossUSDT = ((currentPrice - entryPrice) * leverage * (investment / entryPrice)).toFixed(4);
                     lossPercentage = (((currentPrice - entryPrice) / entryPrice) * 100).toFixed(2);
                 }
 
@@ -439,7 +496,7 @@
         buyButton.addEventListener('click', function() {
             operationType = 'buy';
             entryPrice = parseFloat(priceField.value);
-            entryPriceField.value = entryPrice.toFixed(2);
+            entryPriceField.value = entryPrice.toFixed(4);
             entryPriceField.classList.add('buy');
             entryPriceField.classList.remove('sell');
         });
@@ -448,7 +505,7 @@
         sellButton.addEventListener('click', function() {
             operationType = 'sell';
             entryPrice = parseFloat(priceField.value);
-            entryPriceField.value = entryPrice.toFixed(2);
+            entryPriceField.value = entryPrice.toFixed(4);
             entryPriceField.classList.add('sell');
             entryPriceField.classList.remove('buy');
         });
@@ -461,12 +518,7 @@
             entryPriceField.classList.remove('buy', 'sell');
         });
 
-        // Evento del botón "Comenzar Operación"
-        startTradeButton.addEventListener('click', function() {
-            const selectedCrypto = cryptoSelect.value;
-            openWebSocket(selectedCrypto); // Abre WebSocket para la criptomoneda seleccionada
-            initTradingView(selectedCrypto); // Inicializa el gráfico
-        });
+        
 
         // Inicialización
         const initialCrypto = cryptoSelect.value;
